@@ -10,5 +10,10 @@ def namedzip(*iterables, typename, field_names, **kwargs):
                 len(iterables), len(named_tuple._fields)
             )
         )
-    for zipped in zip(*iterables):
-        yield named_tuple(*zipped)
+    zipped = zip(*iterables)
+
+    def generator():
+        for vals in zipped:
+            yield named_tuple(*vals)
+
+    return generator()
