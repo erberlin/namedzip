@@ -11,7 +11,7 @@ from collections import namedtuple
 from namedzip import namedzip
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def sample_iterables():
     """Test fixture to provide sample iterables."""
     letters = ["A", "B", "C", "D"]
@@ -19,45 +19,45 @@ def sample_iterables():
     return letters, numbers
 
 
-def test_namedzip_smoke(sample_iterables):
-    """Check that a namedzip generator can be initialized and iterated through."""
-    pairs = namedzip(
-        *sample_iterables, typename="Pair", field_names=["letter", "number"]
-    )
-    for pair in pairs:
-        pass
-
-
-def test_namedzip_type(sample_iterables):
-    """Verify that namedzip() returns a generator object."""
-    pairs = namedzip(
-        *sample_iterables, typename="Pair", field_names=["letter", "number"]
-    )
-    assert isinstance(pairs, types.GeneratorType)
-
-
-def test_namedzip_yields_namedtuple(sample_iterables):
-    """Verify that namedzip() generates named tuple."""
-    pair_tuple = namedtuple("Pair", ["letter", "number"])
-    expected_pair = pair_tuple("A", 1)
-    pairs = namedzip(("A",), (1,), typename="Pair", field_names=["letter", "number"])
-    generated_pair = next(pairs)
-    assert generated_pair == expected_pair
-
-
-def test_namedzip_iterables_fieldnames_mismatch(sample_iterables):
-    """Verify ValueError is raiesd for non-equal number of iterables and field names"""
-    with pytest.raises(ValueError):  # Two iterabes, three field names.
-        namedzip(
-            *sample_iterables,
-            typename="Pair",
-            field_names=["letter", "number", "extra"]
+class TestNamedzip:
+    def test_namedzip_smoke(self, sample_iterables):
+        """Check that a namedzip generator can be initialized and iterated through."""
+        pairs = namedzip(
+            *sample_iterables, typename="Pair", field_names=["letter", "number"]
         )
-    with pytest.raises(ValueError):  # Two iterabes, one field name.
-        namedzip(*sample_iterables, typename="Pair", field_names=["letter"])
+        for pair in pairs:
+            pass
 
+    def test_namedzip_type(self, sample_iterables):
+        """Verify that namedzip() returns a generator object."""
+        pairs = namedzip(
+            *sample_iterables, typename="Pair", field_names=["letter", "number"]
+        )
+        assert isinstance(pairs, types.GeneratorType)
 
-def test_namedzip_non_iterable_arg():  # Unnecessary since it's raised by zip()?
-    """Verify TypeError is raised for non-iterable object."""
-    with pytest.raises(TypeError):
-        namedzip("A", 1, typename="Pair", field_names=["letter", "number"])
+    def test_namedzip_yields_namedtuple(self):
+        """Verify that namedzip() generates named tuple."""
+        pair_tuple = namedtuple("Pair", ["letter", "number"])
+        expected_pair = pair_tuple("A", 1)
+        pairs = namedzip(
+            ("A",), (1,), typename="Pair", field_names=["letter", "number"]
+        )
+        generated_pair = next(pairs)
+        assert generated_pair == expected_pair
+
+    def test_namedzip_iterables_fieldnames_mismatch(self, sample_iterables):
+        """ValueError is raiesd for non-equal number of iterables and field names"""
+        with pytest.raises(ValueError):  # Two iterabes, three field names.
+            namedzip(
+                *sample_iterables,
+                typename="Pair",
+                field_names=["letter", "number", "extra"]
+            )
+        with pytest.raises(ValueError):  # Two iterabes, one field name.
+            namedzip(*sample_iterables, typename="Pair", field_names=["letter"])
+
+    def test_namedzip_non_iterable_arg(self):
+        """TypeError is raised for non-iterable object."""
+        # Unnecessary since it's raised by zip()?
+        with pytest.raises(TypeError):
+            namedzip("A", 1, typename="Pair", field_names=["letter", "number"])
