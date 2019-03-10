@@ -76,3 +76,36 @@ def namedzip(*iterables, typename, field_names, **kwargs):
             yield named_tuple(*vals)
 
     return generator()
+
+
+def namedzip_longest(
+    *iterables, typename, field_names, fillvalue=None, defaults=None, **kwargs
+):
+    """Extends itertools.zip_longest() to generate named tuples."""
+    from itertools import zip_longest
+
+    named_tuple = namedtuple(typename, field_names, **kwargs)
+    if len(iterables) != len(named_tuple._fields):
+        raise ValueError(
+            "Number of iterable objects ({}) and field names ({}) do not match.".format(
+                len(iterables), len(named_tuple._fields)
+            )
+        )
+    if defaults and len(defaults) != len(named_tuple._fields):
+        raise ValueError(
+            "Number of field names ({}) and default values ({}) do not match.".format(
+                len(named_tuple._fields), len(defaults)
+            )
+        )
+    if defaults:
+        # Override fillvalue if individual defaults are specified.
+        fillvalue = None
+    zipped = zip_longest(*iterables, fillvalue=fillvalue)
+
+    def generator():
+        for vals in zipped:
+            if defaults:
+                vals = (x if x is not None else defaults[i] for i, x in enumerate(vals))
+            yield named_tuple(*vals)
+
+    return generator()

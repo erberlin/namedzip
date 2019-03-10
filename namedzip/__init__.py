@@ -1,3 +1,3 @@
-from .namedzip import namedzip
+from .namedzip import namedzip, namedzip_longest
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
