@@ -12,8 +12,8 @@ from collections import namedtuple
 def namedzip(*iterables, typename, field_names, **kwargs):
     """Extends zip() to generate named tuples.
 
-    Works like the built-in `zip` function, but requires two additional keyword
-    arguments used for the `namedtuple` factory function.
+    Returns a generator object if iterables are supplied, otherwise returns a reusable
+    factory function for creating generators.
 
     See https://docs.python.org/3/library/functions.html#zip
     and https://docs.python.org/3/library/collections.html#collections.namedtuple
@@ -21,7 +21,7 @@ def namedzip(*iterables, typename, field_names, **kwargs):
 
     Parameters
     ----------
-    iterables : iterable
+    iterables : iterable, optional
         Tuple of iterable objects passed as positional arguments.
         Passed on to `zip` function.
     typename : string
@@ -46,24 +46,30 @@ def namedzip(*iterables, typename, field_names, **kwargs):
 
     """
     named_tuple = namedtuple(typename, field_names, **kwargs)
-    if len(iterables) != len(named_tuple._fields):
-        raise ValueError(
-            "Number of iterable objects ({}) and field names ({}) do not match.".format(
-                len(iterables), len(named_tuple._fields)
-            )
-        )
-    zipped = zip(*iterables)
 
-    def generator():
+    def _namedzip_factory(*iterables):
+        """Returns namedzip generator objects."""
+        if len(iterables) != len(named_tuple._fields):
+            raise ValueError(
+                "Unequal number of iterable objects ({}) and field names ({}).".format(
+                    len(iterables), len(named_tuple._fields)
+                )
+            )
+        zipped = zip(*iterables)
+        return _namedzip_generator(zipped)
+
+    def _namedzip_generator(zipped):
+        """Generates named tuples."""
         for vals in zipped:
             yield named_tuple(*vals)
 
-    return generator()
+    if iterables:
+        return _namedzip_factory(*iterables)
+    else:
+        return _namedzip_factory
 
 
-def namedzip_longest(
-    *iterables, typename, field_names, fillvalue=None, defaults=None, **kwargs
-):
+def namedzip_longest(*iterables, typename, field_names, **kwargs):
     """Extends itertools.zip_longest() to generate named tuples.
 
     Works like `itertools.zip_longest`, but requires two additional keyword
@@ -108,28 +114,36 @@ def namedzip_longest(
     """
     from itertools import zip_longest
 
-    named_tuple = namedtuple(typename, field_names, **kwargs)
-    if len(iterables) != len(named_tuple._fields):
-        raise ValueError(
-            "Number of iterable objects ({}) and field names ({}) do not match.".format(
-                len(iterables), len(named_tuple._fields)
-            )
-        )
-    if defaults and len(defaults) != len(named_tuple._fields):
-        raise ValueError(
-            "Number of field names ({}) and default values ({}) do not match.".format(
-                len(named_tuple._fields), len(defaults)
-            )
-        )
+    fillvalue = kwargs.pop("fillvalue", None)
+    defaults = kwargs.pop("defaults", None)
     if defaults:
         # Override fillvalue if individual defaults are specified.
         fillvalue = None
-    zipped = zip_longest(*iterables, fillvalue=fillvalue)
+    named_tuple = namedtuple(typename, field_names, **kwargs)
 
-    def generator():
+    def _namedzip_factory(*iterables):
+        if len(iterables) != len(named_tuple._fields):
+            raise ValueError(
+                "Unequal number of iterable objects ({}) and field names ({}).".format(
+                    len(iterables), len(named_tuple._fields)
+                )
+            )
+        if defaults and len(defaults) != len(named_tuple._fields):
+            raise ValueError(
+                "Unequal number of field names ({}) and default values ({}).".format(
+                    len(named_tuple._fields), len(defaults)
+                )
+            )
+        zipped = zip_longest(*iterables, fillvalue=fillvalue)
+        return _namedzip_generator(zipped)
+
+    def _namedzip_generator(zipped):
         for vals in zipped:
             if defaults:
                 vals = (x if x is not None else defaults[i] for i, x in enumerate(vals))
             yield named_tuple(*vals)
 
-    return generator()
+    if iterables:
+        return _namedzip_factory(*iterables)
+    else:
+        return _namedzip_factory
