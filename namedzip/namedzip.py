@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-This module implements namedzip(), which extends zip() to generate named tuples instead
-of regular tuples.
+This module implements namedzip() and namedzip_longest(), which extend zip() and
+itertools.zip_longest() to generate named tuples instead of regular tuples.
 
 copyright: © 2019 by Erik R Berlin.
 license: MIT, see LICENSE for more details.
@@ -44,23 +44,6 @@ def namedzip(*iterables, typename, field_names, **kwargs):
     ValueError
         If the number of iterables does not match the number of field names.
 
-    Examples
-    --------
-    >>> from namedzip import namedzip
-    >>> arr1 = ["A", "B", "C"]
-    >>> arr2 = [1, 2, 3]
-    >>> pairs = namedzip(arr1, arr2, typename="Pair", field_names=["letter", "number"])
-    >>> for pair in pairs:
-    ...     print(pair)
-    ...     print(pair.letter * pair.number)
-    ...
-    Pair(letter='A', number=1)
-    A
-    Pair(letter='B', number=2)
-    BB
-    Pair(letter='C', number=3)
-    CCC
-
     """
     named_tuple = namedtuple(typename, field_names, **kwargs)
     if len(iterables) != len(named_tuple._fields):
@@ -81,7 +64,48 @@ def namedzip(*iterables, typename, field_names, **kwargs):
 def namedzip_longest(
     *iterables, typename, field_names, fillvalue=None, defaults=None, **kwargs
 ):
-    """Extends itertools.zip_longest() to generate named tuples."""
+    """Extends itertools.zip_longest() to generate named tuples.
+
+    Works like `itertools.zip_longest`, but requires two additional keyword
+    arguments used for the `namedtuple` factory function.
+
+    See https://docs.python.org/3/library/itertools.html#itertools.zip_longest
+    and https://docs.python.org/3/library/collections.html#collections.namedtuple
+    for documentation on `itertools.zip_longest` and `collections.namedtuple`.
+
+    Parameters
+    ----------
+    iterables : iterable
+        Tuple of iterable objects passed as positional arguments.
+        Passed on to `zip_longest` function.
+    typename : string
+        Name for generated named tuple objects.
+        Passed on to `namedtuple` factory function.
+    field_names : iterable
+        Field names for generated named tuple objects.
+        Passed on to `namedtuple` factory function.
+    fillvalue : type, optional
+        Use for setting all missing values to the same default value. (default is None)
+    defaults : iterable, optional
+        Individual default values for each iterable to zip. Overrides custom fillvalue
+        if specified, and length must match the number of iterables supplied.
+    **kwargs : type
+        Any additional keyword arguments will be passed on to the `namedtuple`
+        factory function. See link above for `collections.namedtuple` documentation.
+
+    Yields
+    ------
+    named tuple object
+        Holds values from each supplied iterable aggregated by `zip_longest`.
+
+    Raises
+    ------
+    ValueError
+        If the number of iterables does not match the number of field names.
+    ValueError
+        If defaults are specified but do not match the number of iterables.
+
+    """
     from itertools import zip_longest
 
     named_tuple = namedtuple(typename, field_names, **kwargs)

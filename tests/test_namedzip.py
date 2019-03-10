@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    Tests for the namedzip.namedzip module.
+Tests for the namedzip.namedzip module.
 
-    copyright: © 2019 by Erik R Berlin.
-    license: MIT, see LICENSE for more details.
+copyright: © 2019 by Erik R Berlin.
+license: MIT, see LICENSE for more details.
 """
 import types
 import pytest
@@ -20,8 +20,10 @@ def sample_iterables():
 
 
 class TestNamedzip:
+    """Collection of tests for `namedzip.namedzip`."""
+
     def test_namedzip_smoke(self, sample_iterables):
-        """Check that a namedzip generator can be initialized and iterated through."""
+        """Check that a `namedzip` generator can be initialized and iterated through."""
         pairs = namedzip(
             *sample_iterables, typename="Pair", field_names=["letter", "number"]
         )
@@ -29,14 +31,14 @@ class TestNamedzip:
             pass
 
     def test_namedzip_type(self, sample_iterables):
-        """Verify that namedzip() returns a generator object."""
+        """Verify that `namedzip()` returns a generator object."""
         pairs = namedzip(
             *sample_iterables, typename="Pair", field_names=["letter", "number"]
         )
         assert isinstance(pairs, types.GeneratorType)
 
     def test_namedzip_yields_namedtuple(self):
-        """Verify that namedzip() generates named tuple."""
+        """Verify that `namedzip` generates named tuples."""
         pair_tuple = namedtuple("Pair", ["letter", "number"])
         expected_pair = pair_tuple("A", 1)
         pairs = namedzip(
@@ -64,8 +66,10 @@ class TestNamedzip:
 
 
 class TestNamedziplongest:
+    """Collection of tests for `namedzip.namedzip_longest`."""
+
     def test_namedzip_longest_smoke(self, sample_iterables):
-        """Check that a namedzip_longest generator can be initialized and iterated."""
+        """Check that a `namedzip_longest` generator can be initialized and iterated."""
         pairs = namedzip_longest(
             *sample_iterables, typename="Pair", field_names=["letter", "number"]
         )
@@ -73,14 +77,14 @@ class TestNamedziplongest:
             pass
 
     def test_namedzip_longest_type(self, sample_iterables):
-        """Verify that namedzip() returns a generator object."""
+        """Verify that `namedzip()` returns a generator object."""
         pairs = namedzip_longest(
             *sample_iterables, typename="Pair", field_names=["letter", "number"]
         )
         assert isinstance(pairs, types.GeneratorType)
 
     def test_namedzip_longest_yields_namedtuple(self):
-        """Verify that namedzip_longest() generates named tuple."""
+        """Verify that `namedzip_longest` generates named tuple."""
         pair_tuple = namedtuple("Pair", ["letter", "number"])
         expected_pair = pair_tuple("A", 1)
         pairs = namedzip_longest(
@@ -107,7 +111,7 @@ class TestNamedziplongest:
             namedzip_longest("A", 1, typename="Pair", field_names=["letter", "number"])
 
     def test_namedzip_longest_fillvalue(self):
-        """Veryfy that the fillvalue parameter works."""
+        """Veryfy that the `fillvalue` parameter works."""
         letters = ["A", "B", "C", "D"]
         numbers = [1, 2, 3]
         pairs = namedzip_longest(
@@ -122,9 +126,9 @@ class TestNamedziplongest:
                 assert pair.number == 99
 
     def test_namedzip_longest_defaults(self):
-        """Veryfy that the defaults parameter works.
+        """Veryfy that the `defaults` parameter works.
 
-        Includes override of specified fillvalue.
+        Includes override of specified `fillvalue`.
         """
         letters = ["A", "B", "C"]
         numbers = [1, 2, 3, 4]
