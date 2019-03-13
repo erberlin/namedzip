@@ -41,10 +41,13 @@ def namedzip(*iterables, typename, field_names, **kwargs):
         If `*iterables` are not supplied.
 
     """
+
     named_tuple = namedtuple(typename, field_names, **kwargs)
 
     def _namedzip_factory(*iterables):
-        return _create_namedzip(*iterables, named_tuple=named_tuple)
+        _compare_iterables_to_fields(len(iterables), len(named_tuple._fields))
+        zipped = _create_zip(*iterables)
+        return _namedzip_generator(zipped, named_tuple)
 
     if iterables:
         return _namedzip_factory(*iterables)
@@ -109,13 +112,9 @@ def namedzip_longest(*iterables, typename, field_names, **kwargs):
         )
 
     def _namedzip_longest_factory(*iterables):
-        return _create_namedzip(
-            *iterables,
-            named_tuple=named_tuple,
-            fillvalue=fillvalue,
-            defaults=defaults,
-            type_longest=True
-        )
+        _compare_iterables_to_fields(len(iterables), len(named_tuple._fields))
+        zipped = _create_zip(*iterables, fillvalue=fillvalue, type_longest=True)
+        return _namedzip_generator(zipped, named_tuple, defaults)
 
     if iterables:
         return _namedzip_longest_factory(*iterables)
@@ -123,78 +122,87 @@ def namedzip_longest(*iterables, typename, field_names, **kwargs):
         return _namedzip_longest_factory
 
 
-def _create_namedzip(
-    *iterables, named_tuple, fillvalue=None, defaults=None, type_longest=False
-):
-    """Zips supplied iterables and returns a generator.
-
-    Aggregates `*iterables` using `zip` or `zip_longest`, and returns a generator which
-    yields named tuples instead of regular tuples.
+def _compare_iterables_to_fields(iterable_count, field_count):
+    """Check that the number of iterable object and field names match.
 
     Parameters
     ----------
-    *iterables : iterable
-        Iterable objects passed as positional arguments. Passed on to `zip` or
-        `zip_longest` depending on the `type_longest` flag.
-    named_tuple : type
-        Named tuple class produced by the `namedtuple` factory function.
-    fillvalue : type, optional
-        Used for setting all missing values to the same default value. Only specified
-        when called by `namedzip_longest`, i.e. when `type_longest` is True.
-        (default is None).
-    defaults : iterable, optional
-        Individual default values for each iterable to zip. Only specified when called
-        by `namedzip_longest`, i.e. when `type_longest` is True. (default is None).
-    type_longest : bool, optional
-        Specifies whether to use `zip_longest` over `zip`. (default is False).
-        Used by `namedzip_longest`.
-
-    Returns
-    ------
-    generator object
+    iterable_count : int
+        Number of iterable objects.
+    field_count : int
+        Number of named tuple field names.
 
     Raises
     ------
     ValueError
-        If the number of `*iterables` supplied does not match the number of field names
-        in `named_tuple`.
+        If `iterable_count` is not equal to `field_count`.
 
     """
-    if len(iterables) != len(named_tuple._fields):
+
+    if iterable_count != field_count:
         raise ValueError(
             "Unequal number of iterable objects ({}) and field names ({}).".format(
-                len(iterables), len(named_tuple._fields)
+                iterable_count, field_count
             )
         )
+
+
+def _create_zip(*iterables, fillvalue=None, type_longest=False):
+    """Zips supplied iterables and returns a generator.
+
+    Aggregates `*iterables` using `zip` or `zip_longest`, depending on
+    the value of the `type_longest` parameter.
+
+    Parameters
+    ----------
+    *iterables : iterable
+        Iterable objects passed as positional arguments. Passed on to
+        `zip` or `zip_longest` depending on the `type_longest` flag.
+    fillvalue : type, optional
+        Set all missing values to this default value. Only specified
+        when called by `namedzip_longest`. (default is None).
+    type_longest : bool, optional
+        Specifies whether to use `zip_longest` over `zip`. Used by
+        `namedzip_longest`. (default is False).
+
+    Returns
+    ------
+    generator object.
+
+    """
+
     if type_longest:
         from itertools import zip_longest
 
         zipped = zip_longest(*iterables, fillvalue=fillvalue)
     else:
         zipped = zip(*iterables)
-    return _namedzip_generator(zipped, named_tuple, defaults)
+    return zipped
 
 
-def _namedzip_generator(zipped, named_tuple, defaults):
+def _namedzip_generator(zipped, named_tuple, defaults=None):
     """Generates named tuple objects.
 
-    Generates named tuple objects from iterables in `zipped`, based on the `named_tuple`
-    class. Also replaces None values in `zipped` if `defaults` are specified.
+    Generates named tuple objects from tuples in `zipped`, based on
+    the `named_tuple` class. Also replaces None values in `zipped` if
+    `defaults` are specified.
 
     Parameters
     ----------
     zipped : iterable
         Should be generator produced by `zip` or zip_longest`.
     named_tuple : type
-        Named tuple class produced by the `namedtuple` factory function.
+        Named tuple class produced by `namedtuple` factory function.
     defaults : iterable or None
-        Individual default values for each position of tuples generated by `zipped`.
+        Default values for each index of tuples generated by `zipped`.
+        (default is None).
 
     Yields
     ------
     named tuple object.
 
     """
+
     for vals in zipped:
         if defaults:
             vals = (x if x is not None else defaults[i] for i, x in enumerate(vals))
