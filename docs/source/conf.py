@@ -14,10 +14,10 @@
 #
 import os
 import sys
+import namedzip
 
 sys.path.insert(0, os.path.abspath("../"))
 
-import namedzip
 
 # -- Project information -----------------------------------------------------
 
