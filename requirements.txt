@@ -5,4 +5,6 @@ numpydoc
 pytest
 pytest-cov
 Sphinx
+twine
+wheel
 
