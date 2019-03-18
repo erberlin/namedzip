@@ -92,7 +92,7 @@ def namedzip_longest(*iterables, typename, field_names, **kwargs):
     ValueError
         If `defaults` are specified but do not match the number of
         `field_names`.
-  
+
     Notes
     -----
     Does not utilize the functionality of `collections.namedtuple` for
