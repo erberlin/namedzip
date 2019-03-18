@@ -12,9 +12,7 @@ Installation
 ------------
 .. code-block:: shell
 
-    $ git clone https://github.com/erberlin/namedzip.git
-    $ cd namedzip
-    $ pip install .
+    $ pip install namedzip
 
 Usage examples
 --------------
