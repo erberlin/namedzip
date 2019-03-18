@@ -6,7 +6,7 @@ namedzip
 .. |license| image:: https://img.shields.io/badge/License-MIT-blue.svg
    :target: https://lbesson.mit-license.org/
 
-This package implements :func:`namedzip` and :func:`namedzip_longest`, which extend :func:`zip` and :func:`itertools.zip_longest` respectively to generate named tuples using :func:`collections.namedtuple`.
+This package implements ``namedzip`` and ``namedzip_longest``, which extend ``zip`` and ``itertools.zip_longest`` respectively to generate named tuples using ``collections.namedtuple``.
 
 Installation
 ------------
@@ -22,7 +22,7 @@ Usage examples
 
    >>> from namedzip import namedzip, namedzip_longest
 
-`namedzip` and `namedzip_longest` can either be used **with iterable positional
+``namedzip`` and ``namedzip_longest`` can either be used **with iterable positional
 arguments**, like the functions which they extend, to return generator objects:
 
 .. code:: python
