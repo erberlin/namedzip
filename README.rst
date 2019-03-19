@@ -1,10 +1,14 @@
 ========
 namedzip
 ========
-|license|
+|license| |pyversions| |wheel| |build| |docs|
 
 .. |license| image:: https://img.shields.io/badge/License-MIT-blue.svg
    :target: https://lbesson.mit-license.org/
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/namedzip.svg
+.. |wheel| image:: https://img.shields.io/pypi/wheel/namedzip.svg
+.. |build| image:: https://img.shields.io/circleci/project/github/erberlin/namedzip/master.svg
+.. |docs| image:: https://img.shields.io/readthedocs/namedzip.svg
 
 This package implements ``namedzip`` and ``namedzip_longest``, which extend ``zip`` and ``itertools.zip_longest`` respectively to generate named tuples using ``collections.namedtuple``.
 
@@ -21,7 +25,7 @@ Usage examples
    >>> from namedzip import namedzip, namedzip_longest
 
 ``namedzip`` and ``namedzip_longest`` can either be used **with iterable positional
-arguments**, like the functions which they extend, to return generator objects:
+arguments**, like the interfaces which they extend, to return generator objects:
 
 .. code:: python
 
@@ -67,29 +71,34 @@ Or **without positional arguments** to return reusable function objects:
    Pair(letter='C', number=99)
    >>>
 
+Documentation
+-------------
+Additional documentation is available at https://namedzip.readthedocs.io/en/latest/.
+
 Development setup
 -----------------
-Clone repo and create virtual environment:
+Clone repo:
 
 .. code-block:: shell
 
    $ git clone https://github.com/erberlin/namedzip.git
    $ cd namedzip
-   $ python -m venv venv
 
-Activate virtual environment on Windows:
+Create and activate virtual environment on Windows:
 
 .. code-block:: shell
 
+   > python -m venv venv
    > venv\Scripts\activate
 
-Activate virtual environment on OS X & Linux:
+Create and activate virtual environment on OS X & Linux:
 
 .. code-block:: shell
 
+   $ python3 -m venv venv
    $ source venv/bin/activate
 
-Install required packages:
+Install development packages:
 
 .. code-block:: shell
 
@@ -104,7 +113,7 @@ Run test suite:
 Meta
 ----
 
-Erik R Berlin – erberlin.dev@gmail.com
+Erik R Berlin - erberlin.dev@gmail.com
 
 Distributed under the MIT license. See ``LICENSE`` for more information.
 
