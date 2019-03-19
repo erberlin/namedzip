@@ -5,7 +5,7 @@ with open("README.rst", "r", encoding="utf-8") as f:
 
 setup(
     name="namedzip",
-    version="1.0.2",
+    version="1.0.3",
     description="Extends zip() and itertools.zip_longest() to generate named tuples.",
     long_description=README,
     long_description_content_type="text/x-rst",
@@ -22,4 +22,5 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=["namedzip"],
+    python_requires=">=3.4",
 )
