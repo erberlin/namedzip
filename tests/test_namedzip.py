@@ -1,15 +1,23 @@
 # -*- coding: utf-8 -*-
-"""
-Tests for the namedzip.namedzip module.
+"""Tests for the namedzip.namedzip module.
 
 copyright: © 2019 by Erik R Berlin.
 license: MIT, see LICENSE for more details.
+
 """
+
 import types
 from collections import namedtuple
+from itertools import zip_longest
 
 import pytest
+
 from namedzip import namedzip, namedzip_longest
+from namedzip.namedzip import (
+    _compare_iterables_to_fields,
+    _create_zip,
+    _namedzip_generator,
+)
 
 
 @pytest.fixture()
@@ -20,8 +28,8 @@ def two_iterables():
     return letters, numbers
 
 
-class TestNamedzip:
-    """Collection of tests for `namedzip.namedzip`."""
+class TestNamedzipSmoke:
+    """Smoke tests for `namedzip.namedzip.namedzip`."""
 
     def test_namedzip_generator_smoke(self, two_iterables):
         """Smoke test for `namedzip` called with iterable positional arguments."""
@@ -37,6 +45,10 @@ class TestNamedzip:
         pairs = zip_pairs(*two_iterables)
         for pair in pairs:
             pass
+
+
+class TestUnitNamedzip:
+    """Collection of tests for `namedzip.namedzip.namedzip`."""
 
     def test_namedzip_generator_type(self, two_iterables):
         """`namedzip` returns a generator when called with positional arguments."""
@@ -86,8 +98,8 @@ class TestNamedzip:
             namedzip("A", 1, typename="Pair", field_names=["letter", "number"])
 
 
-class TestNamedziplongest:
-    """Collection of tests for `namedzip.namedzip_longest`."""
+class TestNamedziplongestSmoke:
+    """Smoke tests for `namedzip.namedzip.namedzip_longest`."""
 
     def test_namedzip_longest_generator_smoke(self, two_iterables):
         """Smoke test for `namedzip_longest` called with iterable positional args."""
@@ -103,6 +115,10 @@ class TestNamedziplongest:
         pairs = zip_pairs(*two_iterables)
         for pair in pairs:
             pass
+
+
+class TestNamedziplongest:
+    """Collection of tests for `namedzip.namedzip.namedzip_longest`."""
 
     def test_namedzip_longest_generator_type(self, two_iterables):
         """`namedzip_longest` returns a generator when called with positional args."""
@@ -198,3 +214,103 @@ class TestNamedziplongest:
             namedzip_longest(
                 typename="ABC", field_names=["A", "B", "C"], defaults=[1, 2, 3, 4]
             )
+
+
+class TestCompareIterablesToFieldsUnit:
+    """Collection of tests for `namedzip.namedzip._compare_iterables_to_fields`."""
+
+    def test__compare_iterables_to_fields_equal(self):
+        "No exception is raised when passed two equal integers."
+        _compare_iterables_to_fields(2, 2)
+        _compare_iterables_to_fields(100, 100)
+
+    def test__compare_iterables_to_fields_unequal(self):
+        "ValueError is raised when passed two unequal integers."
+
+        with pytest.raises(ValueError):
+            _compare_iterables_to_fields(1, 2)
+        with pytest.raises(ValueError):
+            _compare_iterables_to_fields(1, 0)
+
+
+class TestCreateZipUnit:
+    """Collection of tests for `namedzip.namedzip._create_zip`."""
+
+    def test__create_zip_defaults(self, two_iterables):
+        "Returns instance of `zip` when used with defaults."
+
+        zipped = _create_zip(*two_iterables)
+        assert isinstance(zipped, zip)
+
+    def test__create_zip_type_longest_false(self, two_iterables):
+        "Returns instance of `zip` when `type_longest` is False."
+
+        zipped = _create_zip(*two_iterables, type_longest=False)
+        assert isinstance(zipped, zip)
+
+    def test__create_zip_type_longest_true(self, two_iterables):
+        "Returns instance of `zip_longest` when `type_longest` is True."
+
+        zipped = _create_zip(*two_iterables, type_longest=True)
+        assert isinstance(zipped, zip_longest)
+
+    def test__create_zip_default_fillvalue_none(self):
+        "Defalut `fillvalue` should be None when not specified."
+
+        iterables = (("A", "B", "C"), (1, 2))
+        zipped = _create_zip(*iterables, type_longest=True)
+        for z in zipped:
+            pairs = z
+        assert pairs[-1] is None
+
+    def test__create_zip_custom_fillvalue(self):
+        "Custom `fillvalue` should replace missing value."
+
+        iterables = (("A", "B", "C"), (1, 2))
+        zipped = _create_zip(*iterables, fillvalue=99, type_longest=True)
+        for z in zipped:
+            pairs = z
+        assert pairs[-1] == 99
+
+
+class TestNamedzipGeneratorUnit:
+    """Collection of tests for `namedzip.namedzip._namedzip_generator`."""
+
+    def test__namedzip_generator_return_type(self):
+        """Should return a generator object."""
+
+        zipped = zip(("A", "B", "C"), (1, 2, 3))
+        named_tuple = namedtuple("Pair", ["letter", "number"])
+        nz_generator = _namedzip_generator(zipped, named_tuple)
+        assert isinstance(nz_generator, types.GeneratorType)
+
+    def test__namedzip_generator_yields_named_tuple(self):
+        """Returned object should yield named tuples."""
+
+        zipped = zip(("A", "B", "C"), (1, 2, 3))
+        named_tuple = namedtuple("Pair", ["letter", "number"])
+        expected = named_tuple("A", 1)
+        nz_generator = _namedzip_generator(zipped, named_tuple)
+        yielded = next(nz_generator)
+        assert yielded == expected
+
+    def test__namedzip_generator_defaults(self):
+        """`zip_longest` inserts None for missing values by default.
+        `_namedzip_generator` should replace None values with specified defaults.
+
+        """
+
+        letters = ["A", "B", "C"]  # len = 3
+        numbers = [1, 2, 3, 4]  # len = 4
+        symbols = [".", "?", "!"]  # len = 3
+        zipped = zip_longest(letters, numbers, symbols)
+        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
+        defaults = ["X", 99, "#"]
+        nz_generator = _namedzip_generator(zipped, named_tuple, defaults=defaults)
+        for group in nz_generator:
+            if group.number == 4:
+                assert group.letter == "X"
+                assert group.symbol == "#"
+                break
+        else:
+            raise AssertionError("Value assertions were not executed.")
