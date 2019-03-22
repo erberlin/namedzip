@@ -10,5 +10,5 @@
    :hidden:
 
    readme
-   interfaces
+   api_reference
 

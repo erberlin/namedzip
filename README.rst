@@ -1,16 +1,19 @@
 ========
 namedzip
 ========
-|license| |pyversions| |wheel| |build| |docs|
+|license| |pypi| |pyversions| |wheel| |build| |docs|
 
 .. |license| image:: https://img.shields.io/badge/License-MIT-blue.svg
    :target: https://lbesson.mit-license.org/
+.. |pypi| image:: https://img.shields.io/pypi/v/namedzip.svg
+   :target: https://pypi.org/project/namedzip/
 .. |pyversions| image:: https://img.shields.io/pypi/pyversions/namedzip.svg
 .. |wheel| image:: https://img.shields.io/pypi/wheel/namedzip.svg
 .. |build| image:: https://img.shields.io/circleci/project/github/erberlin/namedzip/master.svg
 .. |docs| image:: https://img.shields.io/readthedocs/namedzip.svg
+   :target: https://namedzip.readthedocs.io/en/latest/
 
-This package implements ``namedzip`` and ``namedzip_longest``, which extend ``zip`` and ``itertools.zip_longest`` respectively to generate named tuples using ``collections.namedtuple``.
+This Python package implements ``namedzip`` and ``namedzip_longest``, which extend ``zip`` and ``itertools.zip_longest`` respectively to generate named tuples using ``collections.namedtuple``.
 
 Installation
 ------------
@@ -102,7 +105,7 @@ Install development packages:
 
 .. code-block:: shell
 
-   $ pip install requirements.txt
+   $ pip install -r requirements.txt
 
 Run test suite:
 

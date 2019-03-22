@@ -1,4 +1,4 @@
-Interface details
+API Reference
 =================
 
 Interface function signatures in the :mod:`namedzip.namedzip` module.
