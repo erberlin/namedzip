@@ -74,6 +74,46 @@ Or **without positional arguments** to return reusable function objects:
    Pair(letter='C', number=99)
    >>>
 
+Purpose: Why / how could this be useful?
+----------------------------------------
+The main idea behind this package is to help improve readability in cases where
+you have a need to iterate over more than just a few collections/streams of data.
+Instead of messing with indices or unpacking long tuples, `namedzip` allows you
+to access aggregated values by attribute names.
+
+A small hypothetical example of iterating over streams of sensor data in three ways:
+
+.. code:: python
+
+    zip_data = namedzip(
+        typename="Data", field_names=("temp_f", "humidity", "wind_mph", "pressure_hpa")
+    )
+
+    # Accessing values by attribute names.
+    for data in zip_data(temperature_f, humidity, wind_mph, pressure_hpa):
+        temp_c = (data.temp_f - 32) / 1.8
+        wind_knots = data.wind_mph / 1.15078
+        pressure_atm = data.pressure_hpa / 1013.25
+        dew_point = calculate_dew_point(temp_c, data.humidity)
+
+    # Accessing values by indices.
+    for data in zip(temperature_f, humidity, wind_mph, pressure_hpa):
+        temp_c = (data[0] - 32) / 1.8
+        wind_knots = data[2] / 1.15078
+        pressure_atm = data[3] / 1013.25
+        dew_point = calculate_dew_point(temp_c, data[1])
+
+    # Unpacking values in for statement.
+    for temp_f, humidity, wind_mph, pressure_hpa in zip(temperature_f, humidity, wind_mph, pressure_hpa):
+        temp_c = (temp_f - 32) / 1.8
+        wind_knots = wind_mph / 1.15078
+        pressure_atm = pressure_hpa / 1013.25
+        dew_point = calculate_dew_point(temp_c, humidity)
+
+    # NOTE: The formulas included above have not been checked and may not be accurate.
+
+Additionally, `namedzip_longest` allows for individual default values to be specified for each iterable which `zip_longest` does not.
+
 Documentation
 -------------
 Additional documentation is available at https://namedzip.readthedocs.io/en/latest/.
