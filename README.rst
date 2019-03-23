@@ -78,7 +78,7 @@ Purpose: Why / how could this be useful?
 ----------------------------------------
 The main idea behind this package is to help improve readability in cases where
 you have a need to iterate over more than just a few collections/streams of data.
-Instead of messing with indices or unpacking long tuples, `namedzip` allows you
+Instead of messing with indices or unpacking long tuples, ``namedzip`` allows you
 to access aggregated values by attribute names.
 
 A small hypothetical example of iterating over streams of sensor data in three ways:
@@ -112,7 +112,7 @@ A small hypothetical example of iterating over streams of sensor data in three w
 
     # NOTE: The formulas included above have not been checked and may not be accurate.
 
-Additionally, `namedzip_longest` allows for individual default values to be specified for each iterable which `zip_longest` does not.
+Additionally, ``namedzip_longest`` allows for individual default values to be specified for each iterable which ``zip_longest`` does not.
 
 Documentation
 -------------
