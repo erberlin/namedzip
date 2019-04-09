@@ -10,6 +10,8 @@ license: MIT, see LICENSE for more details.
 
 from collections import namedtuple
 
+sentinel = object()
+
 
 def namedzip(*iterables, typename, field_names, **kwargs):
     """Extends :func:`zip` to generate named tuples.
@@ -102,9 +104,6 @@ def namedzip_longest(*iterables, typename, field_names, **kwargs):
 
     fillvalue = kwargs.pop("fillvalue", None)
     defaults = kwargs.pop("defaults", None)
-    if defaults:
-        # Override fillvalue if individual defaults are specified.
-        fillvalue = None
     named_tuple = namedtuple(typename, field_names, **kwargs)
     if defaults and len(defaults) != len(named_tuple._fields):
         raise ValueError(
@@ -112,6 +111,9 @@ def namedzip_longest(*iterables, typename, field_names, **kwargs):
                 len(named_tuple._fields), len(defaults)
             )
         )
+    elif defaults is not None:
+        # Override fillvalue if individual defaults are specified.
+        fillvalue = sentinel
 
     def _namedzip_longest_factory(*iterables):
         _compare_iterables_to_fields(len(iterables), len(named_tuple._fields))
@@ -207,5 +209,5 @@ def _namedzip_generator(zipped, named_tuple, defaults=None):
 
     for vals in zipped:
         if defaults:
-            vals = (x if x is not None else defaults[i] for i, x in enumerate(vals))
+            vals = (x if x is not sentinel else defaults[i] for i, x in enumerate(vals))
         yield named_tuple(*vals)

@@ -181,6 +181,9 @@ class TestNamedziplongest:
         for pair in pairs:
             if pair.letter == "D":
                 assert pair.number == 99
+                break
+        else:
+            raise AssertionError("Value assertions were not executed.")
 
     def test_namedzip_longest_defaults(self):
         """Veryfy that the `defaults` parameter works.
@@ -203,6 +206,30 @@ class TestNamedziplongest:
             if group.number == 4:
                 assert group.letter == "X"
                 assert group.symbol == "#"
+                break
+        else:
+            raise AssertionError("Value assertions were not executed.")
+
+    def test_namedzip_longest_defaults_none_value_not_repalced(self):
+        """Veryfy that the `defaults` do not replace None values."""
+        letters = ["A", "B", None]
+        numbers = [1, 2, 3]
+        symbols = [".", "?", None]
+        groups = namedzip_longest(
+            letters,
+            numbers,
+            symbols,
+            typename="Group",
+            field_names=["letter", "number", "symbol"],
+            defaults=["X", 99, "#"],
+        )
+        for group in groups:
+            if group.number == 3:
+                assert group.letter is None
+                assert group.symbol is None
+                break
+        else:
+            raise AssertionError("Value assertions were not executed.")
 
     def test_namedzip_longest_fieldnames_defaults_mismatch(self, two_iterables):
         """ValueError is raiesd for non-equal number of field names and defaults"""
@@ -293,24 +320,3 @@ class TestNamedzipGeneratorUnit:
         nz_generator = _namedzip_generator(zipped, named_tuple)
         yielded = next(nz_generator)
         assert yielded == expected
-
-    def test__namedzip_generator_defaults(self):
-        """`zip_longest` inserts None for missing values by default.
-        `_namedzip_generator` should replace None values with specified defaults.
-
-        """
-
-        letters = ["A", "B", "C"]  # len = 3
-        numbers = [1, 2, 3, 4]  # len = 4
-        symbols = [".", "?", "!"]  # len = 3
-        zipped = zip_longest(letters, numbers, symbols)
-        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
-        defaults = ["X", 99, "#"]
-        nz_generator = _namedzip_generator(zipped, named_tuple, defaults=defaults)
-        for group in nz_generator:
-            if group.number == 4:
-                assert group.letter == "X"
-                assert group.symbol == "#"
-                break
-        else:
-            raise AssertionError("Value assertions were not executed.")
