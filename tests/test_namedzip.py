@@ -16,7 +16,9 @@ from namedzip import namedzip, namedzip_longest
 from namedzip.namedzip import (
     _compare_iterables_to_fields,
     _create_zip,
+    _namedzip_v1,
     _namedzip_generator,
+    _namedzip_longest_v1,
 )
 
 
@@ -28,150 +30,156 @@ def two_iterables():
     return letters, numbers
 
 
-class TestNamedzipSmoke:
+class TestNamedzipV1Smoke:
     """Smoke tests for `namedzip.namedzip.namedzip`."""
 
-    def test_namedzip_generator_smoke(self, two_iterables):
+    def test_namedzip_v1_generator_smoke(self, two_iterables):
         """Smoke test for `namedzip` called with iterable positional arguments."""
-        pairs = namedzip(
+        pairs = _namedzip_v1(
             *two_iterables, typename="Pair", field_names=["letter", "number"]
         )
         for pair in pairs:
             pass
 
-    def test_namedzip_factory_smoke(self, two_iterables):
+    def test_namedzip_v1_factory_smoke(self, two_iterables):
         """Smoke test for `namedzip` called without iterable positional arguments."""
-        zip_pairs = namedzip(typename="Pair", field_names=["letter", "number"])
+        zip_pairs = _namedzip_v1(typename="Pair", field_names=["letter", "number"])
         pairs = zip_pairs(*two_iterables)
         for pair in pairs:
             pass
 
 
-class TestUnitNamedzip:
+class TestUnitNamedzipV1:
     """Collection of tests for `namedzip.namedzip.namedzip`."""
 
-    def test_namedzip_generator_type(self, two_iterables):
+    def test_namedzip_v1_generator_type(self, two_iterables):
         """`namedzip` returns a generator when called with positional arguments."""
-        pairs = namedzip(
+        pairs = _namedzip_v1(
             *two_iterables, typename="Pair", field_names=["letter", "number"]
         )
         assert isinstance(pairs, types.GeneratorType)
 
-    def test_namedzip_factory_type(self):
+    def test_namedzip_v1_factory_type(self):
         """`namedzip` returns a function when called without positional arguments."""
-        zip_pairs = namedzip(typename="Pair", field_names=["letter", "number"])
+        zip_pairs = _namedzip_v1(typename="Pair", field_names=["letter", "number"])
         assert isinstance(zip_pairs, types.FunctionType)
 
-    def test_namedzip_required_keyword_args(self):
+    def test_namedzip_v1_required_keyword_args(self):
         """`namedzip` requires `typename` and `field_names` keyword arguments."""
         with pytest.raises(TypeError):
-            namedzip()
+            _namedzip_v1()
         with pytest.raises(TypeError):
-            namedzip(typename="Pair")
+            _namedzip_v1(typename="Pair")
         with pytest.raises(TypeError):
-            namedzip(field_names=["letter", "number"])
+            _namedzip_v1(field_names=["letter", "number"])
 
-    def test_namedzip_yields_namedtuple(self):
+    def test_namedzip_v1_yields_namedtuple(self):
         """Verify that `namedzip` generates named tuples."""
         pair_tuple = namedtuple("Pair", ["letter", "number"])
         expected_pair = pair_tuple("A", 1)
-        pairs = namedzip(
+        pairs = _namedzip_v1(
             ("A",), (1,), typename="Pair", field_names=["letter", "number"]
         )
         generated_pair = next(pairs)
         assert generated_pair == expected_pair
 
-    def test_namedzip_iterables_fieldnames_mismatch(self):
+    def test_namedzip_v1_iterables_fieldnames_mismatch(self):
         """ValueError is raiesd for non-equal number of iterables and field names"""
         iterables = (["A", "B"], [1, 2])
         with pytest.raises(ValueError):  # Two iterabes, three field names.
-            namedzip(
+            _namedzip_v1(
                 *iterables, typename="Pair", field_names=["letter", "number", "extra"]
             )
         with pytest.raises(ValueError):  # Two iterabes, one field name.
-            namedzip(*iterables, typename="Pair", field_names=["letter"])
+            _namedzip_v1(*iterables, typename="Pair", field_names=["letter"])
 
-    def test_namedzip_non_iterable_arg(self):
+    def test_namedzip_v1_non_iterable_arg(self):
         """TypeError is raised for non-iterable object."""
         # Unnecessary since it's raised by zip()?
         with pytest.raises(TypeError):
-            namedzip("A", 1, typename="Pair", field_names=["letter", "number"])
+            _namedzip_v1("A", 1, typename="Pair", field_names=["letter", "number"])
 
 
-class TestNamedziplongestSmoke:
+class TestNamedziplongestV1Smoke:
     """Smoke tests for `namedzip.namedzip.namedzip_longest`."""
 
-    def test_namedzip_longest_generator_smoke(self, two_iterables):
+    def test_namedzip_longest_v1_generator_smoke(self, two_iterables):
         """Smoke test for `namedzip_longest` called with iterable positional args."""
-        pairs = namedzip_longest(
+        pairs = _namedzip_longest_v1(
             *two_iterables, typename="Pair", field_names=["letter", "number"]
         )
         for pair in pairs:
             pass
 
-    def test_namedzip_longest_factory_smoke(self, two_iterables):
+    def test_namedzip_longest_v1_factory_smoke(self, two_iterables):
         """Smoke test for `namedzip_longest` called without iterable positional args."""
-        zip_pairs = namedzip_longest(typename="Pair", field_names=["letter", "number"])
+        zip_pairs = _namedzip_longest_v1(
+            typename="Pair", field_names=["letter", "number"]
+        )
         pairs = zip_pairs(*two_iterables)
         for pair in pairs:
             pass
 
 
-class TestNamedziplongest:
+class TestNamedziplongestV1:
     """Collection of tests for `namedzip.namedzip.namedzip_longest`."""
 
-    def test_namedzip_longest_generator_type(self, two_iterables):
+    def test_namedzip_longest_v1_generator_type(self, two_iterables):
         """`namedzip_longest` returns a generator when called with positional args."""
-        pairs = namedzip_longest(
+        pairs = _namedzip_longest_v1(
             *two_iterables, typename="Pair", field_names=["letter", "number"]
         )
         assert isinstance(pairs, types.GeneratorType)
 
-    def test_namedzip_longest_factory_type(self):
+    def test_namedzip_longest_v1_factory_type(self):
         """`namedzip_longest` returns a function when called without positional args."""
-        zip_pairs = namedzip_longest(typename="Pair", field_names=["letter", "number"])
+        zip_pairs = _namedzip_longest_v1(
+            typename="Pair", field_names=["letter", "number"]
+        )
         assert isinstance(zip_pairs, types.FunctionType)
 
-    def test_namedzip_longest_required_keyword_args(self):
+    def test_namedzip_longest_v1_required_keyword_args(self):
         """`namedzip` requires `typename` and `field_names` keyword arguments."""
         with pytest.raises(TypeError):
-            namedzip_longest()
+            _namedzip_longest_v1()
         with pytest.raises(TypeError):
-            namedzip_longest(typename="Pair")
+            _namedzip_longest_v1(typename="Pair")
         with pytest.raises(TypeError):
-            namedzip_longest(field_names=["letter", "number"])
+            _namedzip_longest_v1(field_names=["letter", "number"])
 
-    def test_namedzip_longest_yields_namedtuple(self):
+    def test_namedzip_longest_v1_yields_namedtuple(self):
         """Verify that `namedzip_longest` generates named tuple."""
         pair_tuple = namedtuple("Pair", ["letter", "number"])
         expected_pair = pair_tuple("A", 1)
-        pairs = namedzip_longest(
+        pairs = _namedzip_longest_v1(
             ("A",), (1,), typename="Pair", field_names=["letter", "number"]
         )
         generated_pair = next(pairs)
         assert generated_pair == expected_pair
 
-    def test_namedzip_longest_iterables_fieldnames_mismatch(self, two_iterables):
+    def test_namedzip_longest_v1_iterables_fieldnames_mismatch(self, two_iterables):
         """ValueError is raiesd for non-equal number of iterables and field names"""
         iterables = (["A", "B"], [1, 2])
         with pytest.raises(ValueError):  # Two iterabes, three field names.
-            namedzip_longest(
+            _namedzip_longest_v1(
                 *iterables, typename="Pair", field_names=["letter", "number", "extra"]
             )
         with pytest.raises(ValueError):  # Two iterabes, one field name.
-            namedzip_longest(*iterables, typename="Pair", field_names=["letter"])
+            _namedzip_longest_v1(*iterables, typename="Pair", field_names=["letter"])
 
-    def test_namedzip_longest_non_iterable_arg(self):
+    def test_namedzip_longest_v1_non_iterable_arg(self):
         """TypeError is raised for non-iterable object."""
         # Unnecessary since it's raised by zip_longest()?
         with pytest.raises(TypeError):
-            namedzip_longest("A", 1, typename="Pair", field_names=["letter", "number"])
+            _namedzip_longest_v1(
+                "A", 1, typename="Pair", field_names=["letter", "number"]
+            )
 
-    def test_namedzip_longest_fillvalue(self):
+    def test_namedzip_longest_v1_fillvalue(self):
         """Veryfy that the `fillvalue` parameter works."""
         letters = ["A", "B", "C", "D"]
         numbers = [1, 2, 3]
-        pairs = namedzip_longest(
+        pairs = _namedzip_longest_v1(
             letters,
             numbers,
             typename="Pair",
@@ -185,7 +193,7 @@ class TestNamedziplongest:
         else:
             raise AssertionError("Value assertions were not executed.")
 
-    def test_namedzip_longest_defaults(self):
+    def test_namedzip_longest_v1_defaults(self):
         """Veryfy that the `defaults` parameter works.
 
         Includes override of specified `fillvalue`.
@@ -193,7 +201,7 @@ class TestNamedziplongest:
         letters = ["A", "B", "C"]  # len = 3
         numbers = [1, 2, 3, 4]  # len = 4
         symbols = [".", "?", "!"]  # len = 3
-        groups = namedzip_longest(
+        groups = _namedzip_longest_v1(
             letters,
             numbers,
             symbols,
@@ -210,12 +218,12 @@ class TestNamedziplongest:
         else:
             raise AssertionError("Value assertions were not executed.")
 
-    def test_namedzip_longest_defaults_none_value_not_repalced(self):
+    def test_namedzip_longest_v1_defaults_none_value_not_repalced(self):
         """Veryfy that the `defaults` do not replace None values."""
         letters = ["A", "B", None]
         numbers = [1, 2, 3]
         symbols = [".", "?", None]
-        groups = namedzip_longest(
+        groups = _namedzip_longest_v1(
             letters,
             numbers,
             symbols,
@@ -231,14 +239,14 @@ class TestNamedziplongest:
         else:
             raise AssertionError("Value assertions were not executed.")
 
-    def test_namedzip_longest_fieldnames_defaults_mismatch(self, two_iterables):
+    def test_namedzip_longest_v1_fieldnames_defaults_mismatch(self, two_iterables):
         """ValueError is raiesd for non-equal number of field names and defaults"""
         with pytest.raises(ValueError):  # Three field names, two default values.
-            namedzip_longest(
+            _namedzip_longest_v1(
                 typename="ABC", field_names=["A", "B", "C"], defaults=[1, 2]
             )
         with pytest.raises(ValueError):  # Three field names, four default values.
-            namedzip_longest(
+            _namedzip_longest_v1(
                 typename="ABC", field_names=["A", "B", "C"], defaults=[1, 2, 3, 4]
             )
 

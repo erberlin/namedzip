@@ -13,7 +13,15 @@ from collections import namedtuple
 sentinel = object()
 
 
-def namedzip(*iterables, typename, field_names, **kwargs):
+def namedzip(named_tuple=None, *iterables):
+    pass
+
+
+def namedzip_longest(named_tuple, *iterables, **kwargs):
+    pass
+
+
+def _namedzip_v1(*iterables, typename, field_names, **kwargs):
     """Extends :func:`zip` to generate named tuples.
 
     Returns a generator if `*iterables` are supplied, otherwise returns
@@ -55,7 +63,7 @@ def namedzip(*iterables, typename, field_names, **kwargs):
         return _namedzip_factory
 
 
-def namedzip_longest(*iterables, typename, field_names, **kwargs):
+def _namedzip_longest_v1(*iterables, typename, field_names, **kwargs):
     """Extends :func:`itertools.zip_longest` to generate named tuples.
 
     Returns a generator if `*iterables` are supplied, otherwise returns
