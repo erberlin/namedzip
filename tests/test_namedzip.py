@@ -9,6 +9,7 @@ license: MIT, see LICENSE for more details.
 import types
 from collections import namedtuple
 from itertools import zip_longest
+import sys
 
 import pytest
 
@@ -19,6 +20,7 @@ from namedzip.namedzip import (
     _namedzip_v1,
     _namedzip_generator,
     _namedzip_longest_v1,
+    _verify_named_tuple,
 )
 
 
@@ -328,3 +330,34 @@ class TestNamedzipGeneratorUnit:
         nz_generator = _namedzip_generator(zipped, named_tuple)
         yielded = next(nz_generator)
         assert yielded == expected
+
+
+class TestVerifyNamedTuple:
+    """Collection of tests for `namedzip.namedzip._verify_named_tuple`."""
+
+    def test__verify_named_tuple_collections_namedtuple(self):
+        """Named tuple should not raise exception."""
+
+        named_tuple = namedtuple("Pair", ["letter", "number"])
+        _verify_named_tuple(named_tuple)
+
+    @pytest.mark.skipif(
+        sys.version_info < (3, 5), reason="Requires Python 3.5 or higher"
+    )
+    def test__verify_named_tuple_typing_namedtuple(self):
+        """Named tuple should not raise exception."""
+
+        from typing import NamedTuple
+
+        named_tuple = NamedTuple("Pair", [("letter", str), ("number", int)])
+        _verify_named_tuple(named_tuple)
+
+    @pytest.mark.parametrize(
+        "invalid_object",
+        [bytes(), dict(), float(), frozenset(), int(), list(), set(), str(), tuple()],
+    )
+    def test__verify_named_tuple_basic_data_types(self, invalid_object):
+        """Basic data types should raise TypeError."""
+
+        with pytest.raises(TypeError):
+            _verify_named_tuple(invalid_object)

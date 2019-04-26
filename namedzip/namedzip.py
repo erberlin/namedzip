@@ -9,6 +9,7 @@ license: MIT, see LICENSE for more details.
 """
 
 from collections import namedtuple
+from inspect import isclass
 
 sentinel = object()
 
@@ -219,3 +220,32 @@ def _namedzip_generator(zipped, named_tuple, defaults=None):
         if defaults:
             vals = (x if x is not sentinel else defaults[i] for i, x in enumerate(vals))
         yield named_tuple(*vals)
+
+
+def _verify_named_tuple(named_tuple):
+    """Attempt to verify `named_tuple` object.
+
+    Parameters
+    ----------
+    named_tuple : named tuple class
+        tuple subclass from `collections.namedtuple` factory function,
+        or subclass of typing.NamedTuple.
+
+    Raises
+    ------
+    TypeError
+        If `named_tuple` does not appear to be a named tuple class.
+
+    """
+
+    if not bool(
+        isclass(named_tuple)
+        and issubclass(named_tuple, tuple)
+        and callable(named_tuple)
+        and hasattr(named_tuple, "_fields")
+    ):
+        raise TypeError(
+            "named_tuple parameter should be a tuple subclass created "
+            "by the collections.namedtuple factory function, or a "
+            "subclass of typing.NamedTuple."
+        )
