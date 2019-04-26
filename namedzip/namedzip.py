@@ -14,8 +14,39 @@ from inspect import isclass
 sentinel = object()
 
 
-def namedzip(named_tuple=None, *iterables):
-    pass
+def namedzip(named_tuple, *iterables):
+    """Extends :func:`zip` to generate named tuples.
+    Returns a generator if `*iterables` are supplied, otherwise returns
+    a function for creating generators.
+
+    Parameters
+    ----------
+    named_tuple : tuple subclass
+        tuple subclass from `collections.namedtuple` factory function,
+        or subclass of typing.NamedTuple.
+    *iterables : iterable, optional
+        Iterable objects to zip.
+
+    Returns
+    -------
+    generator object
+        If `*iterables` are supplied.
+    function object
+        If `*iterables` are not supplied.
+
+    """
+
+    _verify_named_tuple(named_tuple)
+
+    def _namedzip_factory(*iterables):
+        _compare_iterables_to_fields(len(iterables), len(named_tuple._fields))
+        zipped = _create_zip(*iterables)
+        return _namedzip_generator(zipped, named_tuple)
+
+    if iterables:
+        return _namedzip_factory(*iterables)
+    else:
+        return _namedzip_factory
 
 
 def namedzip_longest(named_tuple, *iterables, **kwargs):

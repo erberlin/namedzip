@@ -32,11 +32,80 @@ def two_iterables():
     return letters, numbers
 
 
-class TestNamedzipV1Smoke:
+@pytest.fixture()
+def pair_named_tuple():
+    """Test fixture to provide sample named tuple."""
+
+    return namedtuple("Pair", ["letter", "number"])
+
+
+class TestNamedzipSmoke:
     """Smoke tests for `namedzip.namedzip.namedzip`."""
 
-    def test_namedzip_v1_generator_smoke(self, two_iterables):
+    def test_namedzip_generator_smoke(self, two_iterables):
         """Smoke test for `namedzip` called with iterable positional arguments."""
+
+        named_tuple = namedtuple("Pair", ["letter", "number"])
+        pairs = namedzip(named_tuple, *two_iterables)
+        for pair in pairs:
+            pair.letter
+            pair.number
+
+    def test_namedzip_factory_smoke(self, two_iterables):
+        """Smoke test for `namedzip` called without iterable positional arguments."""
+
+        named_tuple = namedtuple("Pair", ["letter", "number"])
+        zip_pairs = namedzip(named_tuple)
+        pairs = zip_pairs(*two_iterables)
+        for pair in pairs:
+            pair.letter
+            pair.number
+
+
+class TestUnitNamedzip:
+    """Collection of tests for `namedzip.namedzip.namedzip`."""
+
+    def test_namedzip_generator_type(self, pair_named_tuple, two_iterables):
+        """`namedzip` returns a generator when called with iterables."""
+
+        pairs = namedzip(pair_named_tuple, *two_iterables)
+        assert isinstance(pairs, types.GeneratorType)
+
+    def test_namedzip_factory_type(self, pair_named_tuple):
+        """`namedzip` returns a function when called without iterables."""
+
+        zip_pairs = namedzip(pair_named_tuple)
+        assert isinstance(zip_pairs, types.FunctionType)
+
+    def test_namedzip_yields_namedtuple(self):
+        """Verify that `namedzip` generates named tuples."""
+
+        pair_tuple = namedtuple("Pair", ["letter", "number"])
+        expected_pair = pair_tuple("A", 1)
+        pairs = namedzip(pair_tuple, ("A",), (1,))
+        generated_pair = next(pairs)
+        assert generated_pair == expected_pair
+
+    @pytest.mark.parametrize(
+        "fields, iterables",
+        [
+            (["letter", "number", "extra"], (["A", "B"], [1, 2])),
+            (["letter"], (["A", "B"], [1, 2])),
+        ],
+    )
+    def test_namedzip_iterables_fieldnames_mismatch(self, fields, iterables):
+        """ValueError is raiesd for non-equal number of iterables and field names"""
+
+        named_tuple = namedtuple("Group", fields)
+        with pytest.raises(ValueError):
+            namedzip(named_tuple, *iterables)
+
+
+class TestNamedzipV1Smoke:
+    """Smoke tests for `namedzip.namedzip._namedzip_v1`."""
+
+    def test_namedzip_v1_generator_smoke(self, two_iterables):
+        """Smoke test for `_namedzip_v1` called with iterable positional arguments."""
         pairs = _namedzip_v1(
             *two_iterables, typename="Pair", field_names=["letter", "number"]
         )
@@ -44,7 +113,7 @@ class TestNamedzipV1Smoke:
             pass
 
     def test_namedzip_v1_factory_smoke(self, two_iterables):
-        """Smoke test for `namedzip` called without iterable positional arguments."""
+        """Smoke test for `_namedzip_v1` called without iterable positional arguments."""
         zip_pairs = _namedzip_v1(typename="Pair", field_names=["letter", "number"])
         pairs = zip_pairs(*two_iterables)
         for pair in pairs:
@@ -52,22 +121,25 @@ class TestNamedzipV1Smoke:
 
 
 class TestUnitNamedzipV1:
-    """Collection of tests for `namedzip.namedzip.namedzip`."""
+    """Collection of tests for `namedzip.namedzip._namedzip_v1`."""
 
     def test_namedzip_v1_generator_type(self, two_iterables):
-        """`namedzip` returns a generator when called with positional arguments."""
+        """`_namedzip_v1` returns a generator when called with positional arguments."""
+
         pairs = _namedzip_v1(
             *two_iterables, typename="Pair", field_names=["letter", "number"]
         )
         assert isinstance(pairs, types.GeneratorType)
 
     def test_namedzip_v1_factory_type(self):
-        """`namedzip` returns a function when called without positional arguments."""
+        """`_namedzip_v1` returns a function when called without positional arguments."""
+
         zip_pairs = _namedzip_v1(typename="Pair", field_names=["letter", "number"])
         assert isinstance(zip_pairs, types.FunctionType)
 
     def test_namedzip_v1_required_keyword_args(self):
-        """`namedzip` requires `typename` and `field_names` keyword arguments."""
+        """`_namedzip_v1` requires `typename` and `field_names` keyword arguments."""
+
         with pytest.raises(TypeError):
             _namedzip_v1()
         with pytest.raises(TypeError):
@@ -76,7 +148,8 @@ class TestUnitNamedzipV1:
             _namedzip_v1(field_names=["letter", "number"])
 
     def test_namedzip_v1_yields_namedtuple(self):
-        """Verify that `namedzip` generates named tuples."""
+        """Verify that `_namedzip_v1` generates named tuples."""
+
         pair_tuple = namedtuple("Pair", ["letter", "number"])
         expected_pair = pair_tuple("A", 1)
         pairs = _namedzip_v1(
@@ -87,6 +160,7 @@ class TestUnitNamedzipV1:
 
     def test_namedzip_v1_iterables_fieldnames_mismatch(self):
         """ValueError is raiesd for non-equal number of iterables and field names"""
+
         iterables = (["A", "B"], [1, 2])
         with pytest.raises(ValueError):  # Two iterabes, three field names.
             _namedzip_v1(
@@ -97,13 +171,14 @@ class TestUnitNamedzipV1:
 
     def test_namedzip_v1_non_iterable_arg(self):
         """TypeError is raised for non-iterable object."""
+
         # Unnecessary since it's raised by zip()?
         with pytest.raises(TypeError):
             _namedzip_v1("A", 1, typename="Pair", field_names=["letter", "number"])
 
 
 class TestNamedziplongestV1Smoke:
-    """Smoke tests for `namedzip.namedzip.namedzip_longest`."""
+    """Smoke tests for `namedzip.namedzip._namedzip_longest_v1`."""
 
     def test_namedzip_longest_v1_generator_smoke(self, two_iterables):
         """Smoke test for `namedzip_longest` called with iterable positional args."""
@@ -124,7 +199,7 @@ class TestNamedziplongestV1Smoke:
 
 
 class TestNamedziplongestV1:
-    """Collection of tests for `namedzip.namedzip.namedzip_longest`."""
+    """Collection of tests for `namedzip.namedzip._namedzip_longest_v1`."""
 
     def test_namedzip_longest_v1_generator_type(self, two_iterables):
         """`namedzip_longest` returns a generator when called with positional args."""
