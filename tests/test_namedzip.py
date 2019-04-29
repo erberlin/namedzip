@@ -16,7 +16,7 @@ import sys
 
 import pytest
 
-from namedzip import namedzip
+from namedzip import namedzip, namedzip_longest
 from namedzip.namedzip import (
     _compare_iterables_to_fields,
     _create_zip,
@@ -108,6 +108,138 @@ class TestNamedzipIntegration:
         named_tuple = namedtuple("Group", fields)
         with pytest.raises(ValueError):
             namedzip(named_tuple, *iterables)
+
+
+class TestNamedziplongestSmoke:
+    """Smoke tests for `namedzip.namedzip.namedzip_longest`."""
+
+    def test_namedzip_longest_generator_smoke(self, two_iterables):
+        """`namedzip_longest` called with iterables."""
+
+        named_tuple = namedtuple("Pair", ["letter", "number"])
+        pairs = namedzip_longest(named_tuple, *two_iterables)
+        for pair in pairs:
+            pair.letter
+            pair.number
+
+    def test_namedzip_longest_factory_smoke(self, two_iterables):
+        """`namedzip_longest` called without iterables."""
+
+        named_tuple = namedtuple("Pair", ["letter", "number"])
+        zip_pairs = namedzip_longest(named_tuple)
+        pairs = zip_pairs(*two_iterables)
+        for pair in pairs:
+            pair.letter
+            pair.number
+
+
+class TestNamedziplongestIntegration:
+    """Collection for `namedzip.namedzip.namedzip_longest`."""
+
+    def test_namedzip_longest_generator_type(self, pair_named_tuple, two_iterables):
+        """Returns a generator when called with positional args."""
+
+        pairs = namedzip_longest(pair_named_tuple, *two_iterables)
+        assert isinstance(pairs, types.GeneratorType)
+
+    def test_namedzip_longest_factory_type(self, pair_named_tuple):
+        """Returns a function when called without positional args."""
+
+        zip_pairs = namedzip_longest(pair_named_tuple)
+        assert isinstance(zip_pairs, types.FunctionType)
+
+    def test_namedzip_longest_yields_namedtuple(self, pair_named_tuple):
+        """Verify that `namedzip_longest` generates named tuple."""
+
+        expected_pair = pair_named_tuple("A", 1)
+        pairs = namedzip_longest(pair_named_tuple, ("A",), (1,))
+        generated_pair = next(pairs)
+        assert generated_pair == expected_pair
+
+    @pytest.mark.parametrize(
+        "fields, iterables",
+        [
+            (["letter", "number", "extra"], (["A", "B"], [1, 2])),
+            (["letter"], (["A", "B"], [1, 2])),
+        ],
+    )
+    def test_namedzip_longest_iterables_fieldnames_mismatch(self, fields, iterables):
+        """Call with non-equal number of iterables and field names.
+
+        Should raise ValueError
+
+        """
+
+        named_tuple = namedtuple("Group", fields)
+        with pytest.raises(ValueError):
+            namedzip_longest(named_tuple, *iterables)
+
+    def test_namedzip_longest_fillvalue(self):
+        """Veryfy that the `fillvalue` parameter works."""
+
+        named_tuple = namedtuple("Pair", ["letter", "number"])
+        letters = ["A", "B", "C", "D"]
+        numbers = [1, 2, 3]
+        pairs = namedzip_longest(named_tuple, letters, numbers, fillvalue=99)
+        for pair in pairs:
+            if pair.letter == "D":
+                assert pair.number == 99
+                break
+        else:
+            raise AssertionError("Value assertions were not executed.")
+
+    def test_namedzip_longest_defaults(self):
+        """Veryfy that the `defaults` parameter works.
+
+        Includes override of specified `fillvalue`.
+
+        """
+
+        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
+        letters = ["A", "B", "C"]  # len = 3
+        numbers = [1, 2, 3, 4]  # len = 4
+        symbols = [".", "?", "!"]  # len = 3
+        groups = namedzip_longest(
+            named_tuple,
+            letters,
+            numbers,
+            symbols,
+            fillvalue="Missing",  # Should be overridden by defaults parameter.
+            defaults=["X", 99, "#"],
+        )
+        for group in groups:
+            if group.number == 4:
+                assert group.letter == "X"
+                assert group.symbol == "#"
+                break
+        else:
+            raise AssertionError("Value assertions were not executed.")
+
+    def test_namedzip_longest_defaults_none_value_not_repalced(self):
+        """Veryfy that the `defaults` do not replace None values."""
+
+        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
+        letters = ["A", "B", None]
+        numbers = [1, 2, 3]
+        symbols = [".", "?", None]
+        groups = namedzip_longest(
+            named_tuple, letters, numbers, symbols, defaults=["X", 99, "#"]
+        )
+        for group in groups:
+            if group.number == 3:
+                assert group.letter is None
+                assert group.symbol is None
+                break
+        else:
+            raise AssertionError("Value assertions were not executed.")
+
+    def test_namedzip_longest_too_many_defaults(self):
+        """Raises ValueError when too many defaults are specified."""
+
+        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
+        defaults = ("X", 99, "#", "$")
+        with pytest.raises(ValueError):
+            namedzip_longest(named_tuple, defaults)
 
 
 class TestNamedzipV1Smoke:
