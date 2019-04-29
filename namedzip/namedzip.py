@@ -253,6 +253,64 @@ def _namedzip_generator(zipped, named_tuple, defaults=None):
         yield named_tuple(*vals)
 
 
+def _set_defaults(defaults, fillvalue, named_tuple):
+    """Set default values to be used by `_namedzip_generator`.
+
+    Set values form `defaults` if not None, otherwise check if default
+    values are specified in the `named_tuple` class.
+
+    Defaults are applied to the last n fields similar to how the
+    `defaults` parameter of `collections.namedtuple` works. If fewer
+    defaults than field names are specified, missing (leading) default
+    values will be set to `fillvalue`.
+
+    Parameters
+    ----------
+    defaults : iterable or None
+        Specified as keyword argument to `namedzip_longest` interface.
+    fillvalue : type or None
+        Specified as keyword argument to `namedzip_longest` interface.
+    named_tuple : tuple subclass
+        tuple subclass from `collections.namedtuple` factory function,
+        or subclass of typing.NamedTuple.
+
+    Returns
+    -------
+    tuple or None
+
+    Raises
+    ------
+    ValueError
+        If the number of default values is larger than the number of
+        named tuple field names.
+
+    """
+
+    if defaults is not None:
+        # Defaults if specified in keyword argument take priority.
+        defaults = tuple(defaults)
+        if len(defaults) > len(named_tuple._fields):
+            raise ValueError(
+                "Received more default values ({}) than field names ({}).".format(
+                    len(defaults), len(named_tuple._fields)
+                )
+            )
+        elif len(named_tuple._fields) > len(defaults):
+            padded_defaults = [fillvalue] * (len(named_tuple._fields) - len(defaults))
+            padded_defaults.extend(defaults)
+            defaults = tuple(padded_defaults)
+    else:
+        # Defaults attribute can be called `_field_defaults` or `_fields_defaults`.
+        nt_defaults = getattr(named_tuple, "_fields_defaults", None) or getattr(
+            named_tuple, "_field_defaults", None
+        )
+        if nt_defaults:  # Can be empty dict.
+            defaults = tuple(
+                nt_defaults.get(field, fillvalue) for field in (named_tuple._fields)
+            )
+    return defaults
+
+
 def _verify_named_tuple(named_tuple):
     """Attempt to verify `named_tuple` object.
 

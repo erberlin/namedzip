@@ -20,6 +20,7 @@ from namedzip.namedzip import (
     _namedzip_v1,
     _namedzip_generator,
     _namedzip_longest_v1,
+    _set_defaults,
     _verify_named_tuple,
 )
 
@@ -453,3 +454,91 @@ class TestVerifyNamedTuple:
 
         with pytest.raises(TypeError):
             _verify_named_tuple(invalid_object)
+
+
+class TestSetDefaultsUnit:
+    """Collection of tests for `namedzip.namedzip._set_defaults`."""
+
+    def test__set_defaults_no_defaults(self):
+        """Returns None when no defaults are set."""
+
+        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
+        defaults_arg = None
+        fillvalue = "X"
+        defaults = _set_defaults(defaults_arg, fillvalue, named_tuple)
+        assert defaults is None
+
+    def test__set_defaults_from_delauts_arg_equal_length(self):
+        """Returns tuple of default values supplied."""
+
+        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
+        defaults_arg = ["X", 99, "#"]
+        fillvalue = None
+        defaults = _set_defaults(defaults_arg, fillvalue, named_tuple)
+        assert defaults == tuple(defaults_arg)
+
+    def test__set_defaults_from_delauts_arg_shorter(self):
+        """Inserts `fillvalue` for leading fields without defaults."""
+
+        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
+        defaults_arg = (99, "#")
+        fillvalue = "A"
+        defaults = _set_defaults(defaults_arg, fillvalue, named_tuple)
+        assert defaults[0] == "A"
+
+    def test__set_defaults_from_delauts_arg_longer(self):
+        """Raises ValueError when too many defaults are specified."""
+
+        named_tuple = namedtuple("Group", ["letter", "number", "symbol"])
+        defaults_arg = ("X", 99, "#", "$")
+        fillvalue = None
+        with pytest.raises(ValueError):
+            _set_defaults(defaults_arg, fillvalue, named_tuple)
+
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7), reason="Requires Python 3.7 or higher"
+    )
+    def test__set_defaults_from_namedtuple_attribute_equal_length(self):
+        """Returns tuple of defaults values specified in `named_tuple`."""
+
+        named_tuple = namedtuple(
+            "Group", ["letter", "number", "symbol"], defaults=("X", 99, "#")
+        )
+        defaults_arg = None
+        fillvalue = None
+        expected = ("X", 99, "#")
+        defaults = _set_defaults(defaults_arg, fillvalue, named_tuple)
+        assert defaults == expected
+
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7), reason="Requires Python 3.7 or higher"
+    )
+    def test__set_defaults_from_namedtuple_attribute_shorter(self):
+        """Returns tuple of defaults values specified in `named_tuple`.
+
+        Padded with `fillvalue` when defaults are fewer than fields.
+
+        """
+
+        named_tuple = namedtuple(
+            "Group", ["letter", "number", "symbol"], defaults=(99, "#")
+        )
+        defaults_arg = None
+        fillvalue = "Z"
+        expected = ("Z", 99, "#")
+        defaults = _set_defaults(defaults_arg, fillvalue, named_tuple)
+        assert defaults == expected
+
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7), reason="Requires Python 3.7 or higher"
+    )
+    def test__set_defaults_arg_override(self):
+        """Defaults arg overrides named tuple defaults."""
+
+        named_tuple = namedtuple(
+            "Group", ["letter", "number", "symbol"], defaults=("X", 99, "#")
+        )
+        defaults_arg = ["Y", 100, "$"]
+        fillvalue = None
+        defaults = _set_defaults(defaults_arg, fillvalue, named_tuple)
+        assert defaults == tuple(defaults_arg)
