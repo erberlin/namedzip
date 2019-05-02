@@ -9,11 +9,42 @@ license: MIT, see LICENSE for more details.
 """
 
 from collections import namedtuple
+from functools import wraps
 from inspect import isclass
+import warnings
 
 sentinel = object()
 
 
+def _deprecation_warning(func):
+    """Deprecation warning decorator for old api signatures."""
+
+    deprecation_message = (
+        "The typename and field_names parameters will be removed in "
+        "namedzip v2.0.0. Please use the named_tuple parameter instead."
+    )
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        deprecated_kwargs = bool(
+            "typename" in kwargs.keys() or "field_names" in kwargs.keys()
+        )
+        if deprecated_kwargs:
+            warnings.filterwarnings("always", message=deprecation_message)
+            warnings.warn(
+                category=DeprecationWarning, message=deprecation_message, stacklevel=2
+            )
+            if func.__name__ == "namedzip":
+                return _namedzip_v1(*args, **kwargs)
+            else:
+                return _namedzip_longest_v1(*args, **kwargs)
+        else:
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
+@_deprecation_warning
 def namedzip(named_tuple, *iterables):
     """Extends :func:`zip` to generate named tuples.
 
@@ -50,6 +81,7 @@ def namedzip(named_tuple, *iterables):
         return _namedzip_factory
 
 
+@_deprecation_warning
 def namedzip_longest(named_tuple, *iterables, fillvalue=None, defaults=None):
     """Extends :func:`itertools.zip_longest` to generate named tuples.
 

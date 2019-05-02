@@ -242,6 +242,22 @@ class TestNamedziplongestIntegration:
             namedzip_longest(named_tuple, defaults)
 
 
+class TestDeprecationWarnings:
+    """Verify that warnings are issued for deprecated parameters."""
+
+    def test_deprecation_warning_namedzip(self):
+        """DeprecationWarning for typename & field_names kwargs."""
+
+        with pytest.warns(DeprecationWarning):
+            namedzip(typename="Pair", field_names=("letter", "number"))
+
+    def test_deprecation_warning_namedzip_longest(self):
+        """DeprecationWarning for typename & field_names kwargs."""
+
+        with pytest.warns(DeprecationWarning):
+            namedzip_longest(typename="Pair", field_names=("letter", "number"))
+
+
 class TestNamedzipV1Smoke:
     """Smoke tests for `namedzip.namedzip._namedzip_v1`."""
 
