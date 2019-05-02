@@ -4,7 +4,7 @@
 TODO: Clean up and reorganize module.
       Move more boilerplate setup into fixtures.
 
-copyright: © 2019 by Erik R Berlin.
+copyright: (c) 2019 by Erik R Berlin.
 license: MIT, see LICENSE for more details.
 
 """
